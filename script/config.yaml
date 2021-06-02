@@ -38,7 +38,7 @@ spec:
       authentication:
         type: plain
         jaasConfig:
-          secretRef: internal-credentials
+          secretRef: internal-credential
     external:
       externalAccess:
         type: route
