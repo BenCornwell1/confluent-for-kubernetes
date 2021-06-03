@@ -35,4 +35,3 @@ then
         yq eval -i ".spec.dependencies.ksqldb.[0].url = \"http://ksqldb.$namespace.svc:8081\"" ControlCenter.yaml
     fi
 fi
-

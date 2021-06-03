@@ -1,12 +1,16 @@
 #!/bin/bash
 
 namespace=$1
-export domain=$2
-export filename=$3
+domain=$2
+filename=$3
+kafkaUser=$4
+kafkaPass=$5
+c3User=$6
+c3Pass=$7
 
-if [ -z $namespace ] || [ -z $domain ] || [ -z $filename ]
+if [ -z $namespace ] || [ -z $domain ] || [ -z $filename ] || [ -z $kafkaUser ] || [ -z $kafkaPass ] || [ -z $c3User ] || [ -z $c3Pass ]
 then
-    echo "Usage: deploy.sh <namespace for deployment> <cluster domain> <config yaml>"
+    echo "Usage: deploy.sh <namespace for deployment> <cluster domain> <config yaml> <kafka username> <kafka password> <c3 username> <c3 password>"
     exit 1
 fi
 
@@ -38,28 +42,26 @@ then
         --key=certs/confluentCA.key
 fi
 
-# Update URLs for dependencies for C3
-# cacerts=$(cat confluentCA.pem) xComponent=$component yq eval -i '.[env(xComponent)].tls.cacerts = strenv(cacerts)' ../$filename
+# Set up credentials
+mkdir temp
+echo "username=$kafkaUser" > temp/kafka-cred.txt
+echo "password=$kafkaPass" >> temp/kafka-cred.txt
+echo "{" > temp/kafka-digest.json
+echo "  \"username\": \"$kafkaUser\"" >> temp/kafka-digest.json
+echo "  \"password\": \"$kafkaPass\"" >> temp/kafka-digest.json
+echo "}" >> temp/kafka-digest.json
 
-# Extract all the files from the yaml in case we need to edit any of them
-mkdir tempfiles
-cd tempfiles
-index=0
-fileContent="x"
+oc create secret generic kafka-credentials --from-file=plain.txt=temp/kafka-cred.txt --from-file=digest-users.json=temp/kafka-digest.json
 
-while [ ! -z fileContent ]
-do    
-    fileContent=yq eval 'select(di == $index)' $filename
-    ((index=index+1))
-done
+echo "$c3User: $c3Pass, Administrators" > temp/c3-cred.txt
+echo "{" > temp/c3-cred.json
+echo "  \"username\": \"$c3User\"" >> temp/c3-cred.json
+echo "  \"password\": \"$c3Pass\"" >> temp/c3-cred.json
+echo "}" >> temp/c3-cred.json
+oc create secret generic c3-credentials --from-file=plain.txt=temp/c3-cred.txt --from-file=digest-users.json=temp/c3-cred.json
 
-echo "Updating URLs for dependencies for C3"
 
-components="schemaregistry ksqldb connect"
-for $component in components
-do  
-    url=yq eval ''
-
+rm -rf temp
 
 kubectl apply -f ./$filename
 
