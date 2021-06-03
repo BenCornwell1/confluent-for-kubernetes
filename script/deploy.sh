@@ -47,18 +47,18 @@ mkdir temp
 echo "username=$kafkaUser" > temp/kafka-cred.txt
 echo "password=$kafkaPass" >> temp/kafka-cred.txt
 echo "{" > temp/kafka-digest.json
-echo "  \"username\": \"$kafkaUser\"" >> temp/kafka-digest.json
+echo "  \"username\": \"$kafkaUser\"," >> temp/kafka-digest.json
 echo "  \"password\": \"$kafkaPass\"" >> temp/kafka-digest.json
 echo "}" >> temp/kafka-digest.json
 
-oc create secret generic kafka-credentials --from-file=plain.txt=temp/kafka-cred.txt --from-file=digest-users.json=temp/kafka-digest.json
+oc create secret generic kafka-credentials --from-file=plain.txt=temp/kafka-cred.txt --from-file=digest-users.json=temp/kafka-digest.json --from-file=plain-users.json=temp/kafka-digest.json --from-file=digest.txt=temp/kafka-cred.txt
 
 echo "$c3User: $c3Pass, Administrators" > temp/c3-cred.txt
 echo "{" > temp/c3-cred.json
-echo "  \"username\": \"$c3User\"" >> temp/c3-cred.json
+echo "  \"username\": \"$c3User\"," >> temp/c3-cred.json
 echo "  \"password\": \"$c3Pass\"" >> temp/c3-cred.json
 echo "}" >> temp/c3-cred.json
-oc create secret generic c3-credentials --from-file=plain.txt=temp/c3-cred.txt --from-file=digest-users.json=temp/c3-cred.json
+oc create secret generic c3-credentials --from-file=plain.txt=temp/c3-cred.txt --from-file=digest-users.json=temp/c3-cred.json --from-file=plain-users.json=temp/c3-cred.json
 
 
 rm -rf temp
