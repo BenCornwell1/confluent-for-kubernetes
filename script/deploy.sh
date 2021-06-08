@@ -49,20 +49,21 @@ echo "password=$kafkaPass" >> temp/kafka-cred.txt
 echo "{" > temp/kafka-digest.json
 echo "  \"$kafkaUser\": \"$kafkaPass\"" >> temp/kafka-digest.json
 echo "}" >> temp/kafka-digest.json
+echo "$kafkaUser: $kafkaPass" > temp/kafka-basic.txt
 
 oc create secret generic kafka-credentials \
     --from-file=plain.txt=temp/kafka-cred.txt \
     --from-file=digest-users.json=temp/kafka-digest.json \
     --from-file=plain-users.json=temp/kafka-digest.json \
     --from-file=digest.txt=temp/kafka-cred.txt
+    --from-file=basic.txt=temp/kafka-basic.txt
 
 echo "$c3User: $c3Pass,Administrators" > temp/c3-cred.txt
 oc create secret generic c3-credentials --from-file=basic.txt=temp/c3-cred.txt 
 
 echo "username=operator" > temp/metric-cred.txt
 echo "password=operator-secret" >> temp/metric-cred.txt
-echo "operator: operator-secret,Administrators" > temp/metric-cred-basic.txt
-oc create secret generic metric-credentials --from-file=plain.txt=temp/metric-cred.txt --from-file=basic.txt=temp/metric-cred-basic.txt
+oc create secret generic metric-credentials --from-file=plain.txt=temp/metric-cred.txt
 
 rm -rf temp
 
