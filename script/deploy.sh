@@ -28,6 +28,8 @@ else
     helm repo update
 fi
 
+helm upgrade --install operator confluentinc/confluent-for-kubernetes
+
 if [ -z $(oc get secret ca-pair-sslcerts --ignore-not-found=true |grep -q ca-pair-sslcerts) ] 
 then
     if [ ! -e certs/confluentCA.pem ] && [ ! -e certs/confluentCA.key ]

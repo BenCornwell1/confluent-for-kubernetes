@@ -1,0 +1,54 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "title" : "kafkatest",
+    "version" : "1.0.0",
+    "description" : "kafkatest"
+  },
+  "paths" : {
+    "/message" : {
+      "post" : {
+        "operationId" : "postMessage",
+        "responses" : {
+          "200" : {
+            "description" : "The operation was successful.",
+            "schema" : {
+              "$ref" : "#/definitions/response"
+            }
+          },
+          "500" : {
+            "description" : "The oepration failed",
+            "schema" : {
+              "$ref" : "#/definitions/response"
+            }
+          }
+        },
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "description" : "Insert a message",
+        "parameters" : [ {
+          "name" : "body",
+          "in" : "body",
+          "schema" : {
+            "$ref" : "#/definitions/message"
+          },
+          "description" : "Message to produce",
+          "required" : true
+        }, {
+          "name" : "param1",
+          "in" : "query",
+          "type" : "string"
+        } ]
+      }
+    }
+  },
+  "basePath" : "/kafkatest/v1",
+  "definitions" : {
+    "message" : {
+      "type" : "string"
+    },
+    "response" : {
+      "type" : "string"
+    }
+  }
+}
