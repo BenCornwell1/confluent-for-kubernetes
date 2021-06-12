@@ -13,13 +13,13 @@
           "200" : {
             "description" : "The operation was successful.",
             "schema" : {
-              "$ref" : "#/definitions/response"
+              "$ref" : "#/definitions/outputMessage"
             }
           },
           "500" : {
-            "description" : "The oepration failed",
+            "description" : "The operation was unsuccessful.",
             "schema" : {
-              "$ref" : "#/definitions/response"
+              "$ref" : "#/definitions/outputMessage"
             }
           }
         },
@@ -30,25 +30,31 @@
           "name" : "body",
           "in" : "body",
           "schema" : {
-            "$ref" : "#/definitions/message"
+            "$ref" : "#/definitions/inputMessage"
           },
-          "description" : "Message to produce",
+          "description" : "The request body for the operation",
           "required" : true
-        }, {
-          "name" : "param1",
-          "in" : "query",
-          "type" : "string"
         } ]
       }
     }
   },
   "basePath" : "/kafkatest/v1",
   "definitions" : {
-    "message" : {
-      "type" : "string"
+    "inputMessage" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        }
+      }
     },
-    "response" : {
-      "type" : "string"
+    "outputMessage" : {
+      "type" : "object",
+      "properties" : {
+        "greeting" : {
+          "type" : "string"
+        }
+      }
     }
   }
 }

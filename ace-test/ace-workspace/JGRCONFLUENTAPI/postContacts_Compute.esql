@@ -1,10 +1,11 @@
 
 
-CREATE COMPUTE MODULE kafkatestInputFailureHandler_Compute
+CREATE COMPUTE MODULE postContacts_Compute
 	CREATE FUNCTION Main() RETURNS BOOLEAN
 	BEGIN
-		-- CALL CopyMessageHeaders();
+		CALL CopyMessageHeaders();
 		-- CALL CopyEntireMessage();
+		SET OutputRoot.JSON.Data = InputRoot.JSON.Data.payload;
 		RETURN TRUE;
 	END;
 
