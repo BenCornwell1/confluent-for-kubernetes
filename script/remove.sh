@@ -11,5 +11,25 @@ oc delete Connect.platform.confluent.io connect
 oc delete Kafka.platform.confluent.io kafka
 oc delete Zookeeper.platform.confluent.io zookeeper
 
-oc delete secret kafka-credentials
-oc delete secret c3-credentials
+helm delete operator
+
+secrets="zookeeper-listener \
+    kafka-listener \
+    kafka-zookeeper \
+    connect-kafka \
+    sr-kafka \
+    ksql-kafka \
+    connect-listener \
+    ksql-listener \
+    sr-listener \
+    c3-user \
+    c3-connect \
+    c3-ksql \
+    c3-sr \
+    metric-credentials\
+    ca-pair-sslcerts"
+
+for secret in $secrets
+do
+    oc delete secret $secret
+done
