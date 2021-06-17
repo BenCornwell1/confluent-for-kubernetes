@@ -46,25 +46,91 @@ fi
 
 # Set up credentials
 mkdir temp
-echo "username=$kafkaUser" > temp/kafka-cred.txt
-echo "password=$kafkaPass" >> temp/kafka-cred.txt
-echo "{" > temp/kafka-digest.json
-echo "  \"$kafkaUser\": \"$kafkaPass\"" >> temp/kafka-digest.json
-echo "}" >> temp/kafka-digest.json
+
+# Simple credential file for Kafka user
+echo "username=$kafkaUser" > temp/kafka-plain.txt
+echo "password=$kafkaPass" >> temp/kafka-plain.txt
+
+# JSON digest file format for Kafka user
+echo "{" > temp/digest.json
+echo "  \"$kafkaUser\": \"$kafkaPass\"" >> temp/digest.json
+echo "}" >> temp/digest.json
+
+# Basic client auth Kafka creds
 echo "$kafkaUser: $kafkaPass" > temp/kafka-basic.txt
 
-oc create secret generic kafka-credentials \
-    --from-file=plain.txt=temp/kafka-cred.txt \
-    --from-file=digest-users.json=temp/kafka-digest.json \
-    --from-file=plain-users.json=temp/kafka-digest.json \
-    --from-file=digest.txt=temp/kafka-cred.txt
-    --from-file=basic.txt=temp/kafka-basic.txt
+# Admin Kafka client creds
+echo "$kafkaUser: $kafkaPass,admin" > temp/kafka-roles.txt
 
-echo "$c3User: $c3Pass,Administrators" > temp/c3-cred.txt
-oc create secret generic c3-credentials --from-file=basic.txt=temp/c3-cred.txt 
+# C3 user login
+echo "$c3User: $c3Pass,Administrators" > temp/c3-user.txt
 
+# Metric reporter
 echo "username=operator" > temp/metric-cred.txt
 echo "password=operator-secret" >> temp/metric-cred.txt
+
+
+# Now create the secrets from these files
+
+# Kafka and Zookeeper
+
+# Kafka listener
+oc create secret generic zookeeper-listener \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# Zookeeper listener
+oc create secret generic zookeeper-listener \
+    --from-file=plain.txt=temp/digest.json
+
+# Kafka -> Zookeeper
+oc create secret generic kafka-zookeeper \
+    --from-file=plain.txt=temp/kafka-plain.txt
+
+# Components connecting to Kafka
+
+# Connect -> Kafka
+oc create secret generic connect-kafka \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# Schema Registry -> Kafka
+oc create secret generic sr-kafka \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# KSQL -> Kafka
+oc create secret generic ksql-kafka \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# Listeners for the components
+
+# Connect listener
+oc create secret generic connect-listener \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# KSQL Listener
+oc create secret generic ksql-listener \
+    --from-file=plain.txt=temp/kafka-roles.txt
+
+# SR Listener
+oc create secret generic sr-listener \
+    --from-file=plain.txt=temp/kafka-roles.txt
+
+# Control Center
+
+# User login for C3
+oc create secret generic c3-user --from-file=basic.txt=temp/c3-user.txt 
+
+# C3 -> Connect
+oc create secret generic c3-connect \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# C3 -> KSQL
+oc create secret generic c3-ksql \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
+# C3 -> SR
+oc create secret generic c3-sr \
+    --from-file=plain.txt=temp/kafka-basic.txt
+
 oc create secret generic metric-credentials --from-file=plain.txt=temp/metric-cred.txt
 
 rm -rf temp

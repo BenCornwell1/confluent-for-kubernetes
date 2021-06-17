@@ -15,16 +15,14 @@
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="305,131" computeExpression="esql://routine/#postMessage_Compute.Main">
         <translation xmi:type="utility:ConstantString" string="Compute"/>
       </nodes>
-      <nodes xmi:type="com_ibm_connector_kafka_ComIbmOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_2" location="432,136" connectorName="Kafka" topicName="test-topic2" bootstrapServers="rb.mycluster-lon06-b3c-16x64-403315c8b53cfaaf40d7fd4ee4d91267-0000.eu-gb.containers.appdomain.cloud:443" useClientIdSuffix="true" acks="0" timeout="10" securityIdentity="confluentCreds" securityProtocol="SASL_SSL" sslProtocol="TLSv1.2" validateMaster="inherit" validateFailureAction="exception" policyUrl="{kafkapolicy}:test">
+      <nodes xmi:type="com_ibm_connector_kafka_ComIbmOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_2" location="432,136" connectorName="Kafka" topicName="test-topic2" bootstrapServers="rb.mycluster-lon06-b3c-16x64-403315c8b53cfaaf40d7fd4ee4d91267-0000.eu-gb.containers.appdomain.cloud:443" clientId="ace-test-producer" useClientIdSuffix="true" acks="0" timeout="10" securityIdentity="confluentCreds" securityProtocol="SASL_SSL" sslProtocol="TLSv1.2" validateMaster="inherit" validateFailureAction="exception"
+          policyUrl="{kafkapolicy}:test">
         <translation xmi:type="utility:ConstantString" string="KafkaProducer"/>
       </nodes>
       <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_1" targetNode="FCMComposite_1_1" sourceNode="InTerminal.Input_1" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
       <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_3" targetNode="FCMComposite_1_2" sourceNode="FCMComposite_1_1" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
       <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_4" targetNode="OutTerminal.Output_1" sourceNode="FCMComposite_1_2" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in">
         <bendPoints>59,30,-61,19</bendPoints>
-      </connections>
-      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_6" targetNode="OutTerminal.Output_1" sourceNode="FCMComposite_1_2" sourceTerminalName="OutTerminal.failure" targetTerminalName="InTerminal.in">
-        <bendPoints>105,-37,-112,-51</bendPoints>
       </connections>
     </composition>
     <propertyOrganizer/>

@@ -1,6 +1,36 @@
-{"keys":{"c3":{"sasl_mechanism":"PLAIN","hashed_secret":"c3-secret","hash_function":"none","logical_cluster_id":"confluent3","user_id":"
-c3","service_account":false},"kafka":{"sasl_mechanism":"PLAIN","hashed_secret":"kafka-secret","hash_function":"none","logical_cluster_id
-":"confluent3","user_id":"kafka","service_account":false},"kafka_client":{"sasl_mechanism":"PLAIN","hashed_secret":"kafka_client-secret"
-,"hash_function":"none","logical_cluster_id":"confluent3","user_id":"kafka_client","service_account":false},"operator":{"sasl_mechanism"
-:"PLAIN","hashed_secret":"operator-secret","hash_function":"none","logical_cluster_id":"confluent3","user_id":"operator","service_accoun
-t":false}}}
+{
+    "keys": {
+        "c3": {
+            "sasl_mechanism": "PLAIN",
+            "hashed_secret": "c3-secret",
+            "hash_function": "none",
+            "logical_cluster_id": "confluent3",
+            "user_id": "c3",
+            "service_account": false
+        },
+        "kafka": {
+            "sasl_mechanism": "PLAIN",
+            "hashed_secret": "kafka-secret",
+            "hash_function": "none",
+            "logical_cluster_id": "confluent3",
+            "user_id": "kafka",
+            "service_account": false
+        },
+        "kafka_client": {
+            "sasl_mechanism": "PLAIN",
+            "hashed_secret": "kafka_client-secret",
+            "hash_function": "none",
+            "logical_cluster_id": "confluent3",
+            "user_id": "kafka_client",
+            "service_account": false
+        },
+        "operator": {
+            "sasl_mechanism": "PLAIN",
+            "hashed_secret": "operator-secret",
+            "hash_function": "none",
+            "logical_cluster_id": "confluent3",
+            "user_id": "operator",
+            "service_account": false
+        }
+    }
+}
