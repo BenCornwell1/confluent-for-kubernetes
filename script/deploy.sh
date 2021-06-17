@@ -69,7 +69,6 @@ echo "$c3User: $c3Pass,Administrators" > temp/c3-user.txt
 echo "username=operator" > temp/metric-cred.txt
 echo "password=operator-secret" >> temp/metric-cred.txt
 
-
 # Now create the secrets from these files
 
 # Kafka and Zookeeper
