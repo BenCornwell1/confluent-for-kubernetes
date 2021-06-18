@@ -1,5 +1,7 @@
 # Deployment script for demo/PoC Confluent cluster
 
+Please note this is not suitable for production or any use where involving data you are responsible for.  It is not (yet) fully secured.
+
 To deploy a cluster
 
 ```
