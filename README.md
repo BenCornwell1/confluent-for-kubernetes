@@ -2,6 +2,7 @@
 
 Usage:
 
+```
 deploy.sh 
   <namespace> \
   <cluster ingress domain> \
@@ -10,3 +11,4 @@ deploy.sh
   <kafka password> \
   <control centre username> \
   <control centre password>
+```
