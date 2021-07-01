@@ -1,8 +1,7 @@
 #!/bin/bash
 
-namespace=cfk1
-schemaRegistryPort=8081
-ksqlDBPort=8088
+namespace=$1
+filename=$2
 
 index=0
 fileContent=$(i=$index yq eval 'select(di == env(i))' ../config.yaml)
