@@ -75,6 +75,7 @@ fileContent=$(i=$index yq eval 'select(di == env(i))' $filename)
 while [ ! -z "${fileContent// }" ]
 do
     type=$(i=$index yq eval 'select(di == env(i)) | .kind' $filename)
+    echo Making file operatorTemp/$type.yaml
     echo "$fileContent" > operatorTemp/$type.yaml
 
     ((index=index+1))
@@ -90,19 +91,23 @@ yq eval -i ".spec.listeners.externalAccess.route.bootstrapPrefix = \"kafka-$name
 for file in "operatorTemp/ControlCenter.yaml operatorTemp/SchemaRegistry.yaml operatorTemp/Connect.yaml operatorTemp/KSQLDB.yaml"
 do
     lowercaseFile="$file" | tr '[:upper:]' '[:lower:]'
-    yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"${lowercaseFile%.*}-$namespace-\"" operatorTemp/$file
+    yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"${lowercaseFile%.*}-$namespace-\"" $file
 done
 
 # Replace the namespace element in each file and then cat them to the temp file
 index=0
 for file in operatorTemp/*.yaml
 do
+    echo File = $file
     yq eval -i ".metadata.namespace = \"$namespace\"" $file
 
     if [ ! $index -eq 0 ]
     then
         echo "---" >> operatorTemp/newFile.yaml
     fi
+
+    cat $file >> operatorTemp/newFile.yaml
+
     ((index=index+1))
 done
 
@@ -116,7 +121,7 @@ mv $filename $filename.backup
 cp operatorTemp/newFile.yaml ./$filename
 
 # Tidy up
-# rm -rf operatorTemp
+rm -rf operatorTemp
 
 # kubectl apply -f ./$filename
 
