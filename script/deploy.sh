@@ -14,6 +14,10 @@ then
     exit 1
 fi
 
+# Copy config file to new file to avoid corrupting the old one
+cp $filename deployed-$filename
+filename=deployed-$filename
+
 # Create and configure namespace
 oc new-project $namespace
 oc project $namespace
@@ -88,11 +92,31 @@ yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"kafka-$namespa
 yq eval -i ".spec.listeners.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" operatorTemp/Kafka.yaml
 
 # Change the route prefix for the other components
-for file in "operatorTemp/ControlCenter.yaml operatorTemp/SchemaRegistry.yaml operatorTemp/Connect.yaml operatorTemp/KSQLDB.yaml"
+for component in "ControlCenter SchemaRegistry Connect KSQLDB"
 do
-    lowercaseFile="$file" | tr '[:upper:]' '[:lower:]'
-    yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"${lowercaseFile%.*}-$namespace-\"" $file
+    file=operatorTemp/$component.yaml
+    lowercaseComponent="$component" | tr '[:upper:]' '[:lower:]'
+    yq eval -i ".spec.dependencies.kafka.bootstrapEndpoint = \"${lowercaseComponent%}.$namespace.svc.cluster.local:9071\"" $file
 done
+
+# Cofigure component endpoints in Control Center
+if [ -e operatorTemp/ControlCenter.yaml ]
+then
+    if [ -e Connect.yaml ]
+    then
+        yq eval -i ".spec.dependencies.connect.[0].url = \"http://connect.$namespace.svc:8083\"" operatorTemp/ControlCenter.yaml      
+    fi
+
+    if [ -e SchemaRegistry.yaml ]
+    then
+        yq eval -i ".spec.dependencies.schemaRegistry.url = \"http://schemaregistry.$namespace.svc:8081\"" operatorTemp/ControlCenter.yaml
+    fi
+
+    if [ -e KsqlDB.yaml ]
+    then
+        yq eval -i ".spec.dependencies.ksqldb.[0].url = \"http://ksqldb.$namespace.svc:8081\"" operatorTemp/ControlCenter.yaml
+    fi
+fi
 
 # Replace the namespace element in each file and then cat them to the temp file
 index=0
@@ -111,18 +135,11 @@ do
     ((index=index+1))
 done
 
-# Rename the original config file and then copy the original one to a backup
-if [ -f $filename.backup ]
-then
-    rm $filename.backup
-fi
-
-mv $filename $filename.backup
 cp operatorTemp/newFile.yaml ./$filename
 
 # Tidy up
 rm -rf operatorTemp
 
-# kubectl apply -f ./$filename
+#oc apply -f ./$filename
 
 echo Trust store created: confluent-$namespace.p12, password is password
