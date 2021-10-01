@@ -45,17 +45,17 @@ spec:
       tls:
         enabled: true
     schemaRegistry:
-      url: http://schemaregistry.cfk5.cluster.svc.local:8081
+      url: https://schemaregistry.cfk5.svc.cluster.local:8081
       tls:
         enabled: true
     ksqldb:
       - name: ksqldb
-        url: http://ksqldb.cfk5.cluster.svc.local:8081
+        url: https://ksqldb.cfk5.svc.cluster.local:8081
         tls:
           enabled: true
     connect:
       - name: connect
-        url: http://connect.cfk5.cluster.svc.local:8083
+        url: https://connect.cfk5.svc.cluster.local:8083
         tls:
           enabled: true
   tls:

@@ -107,17 +107,17 @@ if [ -e ControlCenter.yaml ]
 then
     if [ -e Connect.yaml ]
     then
-        yq eval -i ".spec.dependencies.connect.[0].url = \"http://connect.$namespace.cluster.svc.local:8083\"" ControlCenter.yaml      
+        yq eval -i ".spec.dependencies.connect.[0].url = \"https://connect.$namespace.svc.cluster.local:8083\"" ControlCenter.yaml      
     fi
 
     if [ -e SchemaRegistry.yaml ]
     then
-        yq eval -i ".spec.dependencies.schemaRegistry.url = \"http://schemaregistry.$namespace.cluster.svc.local:8081\"" ControlCenter.yaml
+        yq eval -i ".spec.dependencies.schemaRegistry.url = \"https://schemaregistry.$namespace.svc.cluster.local:8081\"" ControlCenter.yaml
     fi
 
     if [ -e KsqlDB.yaml ]
     then
-        yq eval -i ".spec.dependencies.ksqldb.[0].url = \"http://ksqldb.$namespace.cluster.svc.local:8081\"" ControlCenter.yaml
+        yq eval -i ".spec.dependencies.ksqldb.[0].url = \"https://ksqldb.$namespace.svc.cluster.local:8088\"" ControlCenter.yaml
     fi
 fi
 
@@ -144,6 +144,6 @@ cd ..
 # Tidy up
 rm -rf operatorTemp
 
-#oc apply -f ./$filename
+oc apply -f ./$filename
 
 echo Trust store created: confluent-$namespace.p12, password is password
