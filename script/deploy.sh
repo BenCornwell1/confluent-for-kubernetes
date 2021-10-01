@@ -62,80 +62,84 @@ keytool -keystore confluent-$namespace.p12 -storetype PKCS12 -import -file ./cer
 # then recombines them.
 
 # Organise temp dir and files
-if [ ! -d operatorTemp ]
+if [ -d operatorTemp ]
 then
-    mkdir operatorTemp
+    rmdir operatorTemp
 fi
 
-if [ -f operatorTemp/newFile.yaml ]
+mkdir operatorTemp
+cd operatorTemp
+
+if [ -f newFile.yaml ]
 then
-    rm operatorTemp/newFile.yaml
+    rm newFile.yaml
 fi
 
 # Split up the config file
 index=0
-fileContent=$(i=$index yq eval 'select(di == env(i))' $filename)
+fileContent=$(i=$index yq eval 'select(di == env(i))' ../$filename)
 
 while [ ! -z "${fileContent// }" ]
 do
-    type=$(i=$index yq eval 'select(di == env(i)) | .kind' $filename)
-    echo Making file operatorTemp/$type.yaml
-    echo "$fileContent" > operatorTemp/$type.yaml
+    type=$(i=$index yq eval 'select(di == env(i)) | .kind' ../$filename)
+    echo Making file $type.yaml
+    echo "$fileContent" > $type.yaml
 
     ((index=index+1))
-    fileContent=$(i=$index yq eval 'select(di == env(i))' $filename)
+    fileContent=$(i=$index yq eval 'select(di == env(i))' ../$filename)
 
 done
 
 # Change the route prefix for the Kafka brokers
-yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"kafka-$namespace-\"" operatorTemp/Kafka.yaml
-yq eval -i ".spec.listeners.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" operatorTemp/Kafka.yaml
+yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"kafka-$namespace-\"" Kafka.yaml
+yq eval -i ".spec.listeners.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" Kafka.yaml
 
 # Change the route prefix for the other components
-for component in "ControlCenter SchemaRegistry Connect KSQLDB"
+for component in ControlCenter SchemaRegistry Connect KSQLDB
 do
-    file=operatorTemp/$component.yaml
-    lowercaseComponent="$component" | tr '[:upper:]' '[:lower:]'
-    yq eval -i ".spec.dependencies.kafka.bootstrapEndpoint = \"${lowercaseComponent%}.$namespace.svc.cluster.local:9071\"" $file
+    file="$component".yaml
+    lowercaseComponent=$(echo $component | tr '[:upper:]' '[:lower:]')
+    yq eval -i ".spec.dependencies.kafka.bootstrapEndpoint = \"kafka.$namespace.svc.cluster.local:9071\"" $file
 done
 
 # Cofigure component endpoints in Control Center
-if [ -e operatorTemp/ControlCenter.yaml ]
+if [ -e ControlCenter.yaml ]
 then
     if [ -e Connect.yaml ]
     then
-        yq eval -i ".spec.dependencies.connect.[0].url = \"http://connect.$namespace.svc:8083\"" operatorTemp/ControlCenter.yaml      
+        yq eval -i ".spec.dependencies.connect.[0].url = \"http://connect.$namespace.cluster.svc.local:8083\"" ControlCenter.yaml      
     fi
 
     if [ -e SchemaRegistry.yaml ]
     then
-        yq eval -i ".spec.dependencies.schemaRegistry.url = \"http://schemaregistry.$namespace.svc:8081\"" operatorTemp/ControlCenter.yaml
+        yq eval -i ".spec.dependencies.schemaRegistry.url = \"http://schemaregistry.$namespace.cluster.svc.local:8081\"" ControlCenter.yaml
     fi
 
     if [ -e KsqlDB.yaml ]
     then
-        yq eval -i ".spec.dependencies.ksqldb.[0].url = \"http://ksqldb.$namespace.svc:8081\"" operatorTemp/ControlCenter.yaml
+        yq eval -i ".spec.dependencies.ksqldb.[0].url = \"http://ksqldb.$namespace.cluster.svc.local:8081\"" ControlCenter.yaml
     fi
 fi
 
 # Replace the namespace element in each file and then cat them to the temp file
 index=0
-for file in operatorTemp/*.yaml
+for file in *.yaml
 do
     echo File = $file
     yq eval -i ".metadata.namespace = \"$namespace\"" $file
 
     if [ ! $index -eq 0 ]
     then
-        echo "---" >> operatorTemp/newFile.yaml
+        echo "---" >> newFile.yaml
     fi
 
-    cat $file >> operatorTemp/newFile.yaml
+    cat $file >> newFile.yaml
 
     ((index=index+1))
 done
 
-cp operatorTemp/newFile.yaml ./$filename
+cp newFile.yaml ../$filename
+cd ..
 
 # Tidy up
 rm -rf operatorTemp
