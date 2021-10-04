@@ -121,6 +121,12 @@ then
     fi
 fi
 
+# Add basic auth to the schema registry and the dependency in C3, but not the others as it's not yet supported
+yq eval -i ".spec.authentication.type = \"basic\"" SchemaRegistry.yaml
+yq eval -i ".spec.authentication.basic.secretRef = \"sr-listener\"" SchemaRegistry.yaml
+yq eval -i ".spec.dependencies.schemaRegistry.authentication.type = \"basic\"" ControlCenter.yaml
+yq eval -i ".spec.dependencies.schemaRegistry.authentication.basic.secretRef = \"c3-sr\"" ControlCenter.yaml
+
 # Replace the namespace element in each file and then cat them to the temp file
 index=0
 for file in *.yaml

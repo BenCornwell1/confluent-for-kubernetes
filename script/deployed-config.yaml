@@ -48,9 +48,13 @@ spec:
       url: https://schemaregistry.cfk5.svc.cluster.local:8081
       tls:
         enabled: true
+      authentication:
+        type: basic
+        basic:
+          secretRef: c3-sr
     ksqldb:
       - name: ksqldb
-        url: https://ksqldb.cfk5.svc.cluster.local:8081
+        url: https://ksqldb.cfk5.svc.cluster.local:8088
         tls:
           enabled: true
     connect:
@@ -175,6 +179,10 @@ spec:
           secretRef: sr-kafka
       tls:
         enabled: true
+  authentication:
+    type: basic
+    basic:
+      secretRef: sr-listener
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Zookeeper
