@@ -2,6 +2,12 @@
 
 namespace=$1
 
+if [ -z $namespace ]
+then
+    echo "Usage: remove.sh <confluent namespace>"
+    exit 1
+fi
+
 oc project $namespace
 
 oc delete SchemaRegistry.platform.confluent.io schemaregistry
@@ -32,7 +38,7 @@ secrets="zookeeper-listener \
     connect-tls \
     replicator-tls \
     schemaregistry-tls \
-    ksql-tls \
+    ksqldb-tls \
     controlcenter-tls \
     zookeeper-tls"
 
@@ -40,3 +46,5 @@ for secret in $secrets
 do
     oc delete secret $secret
 done
+
+rm confluent-$namespace.p12

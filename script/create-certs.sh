@@ -1,6 +1,6 @@
 #!/bin/bash
 
-components="kafka connect replicator schemaregistry ksql controlcenter zookeeper"
+components="kafka connect replicator schemaregistry ksqldb controlcenter zookeeper"
 
 namespace=$1
 exthost=$2
