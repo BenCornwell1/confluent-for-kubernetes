@@ -19,6 +19,7 @@ cp $filename deployed-$filename
 filename=deployed-$filename
 
 # Create and configure namespace
+echo Creating and configuring namespace
 oc new-project $namespace
 oc project $namespace
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
@@ -34,27 +35,21 @@ else
 fi
 
 # Install the operator
+echo Installing the operator
 helm upgrade --install operator confluentinc/confluent-for-kubernetes
 
-# Create a CA
-if [ -z $(oc get secret ca-pair-sslcerts --ignore-not-found=true |grep -q ca-pair-sslcerts) ] 
+# Create certificates
+if [ -z $(oc get secret kafka-tls --ignore-not-found=true |grep -q kafka-tls) ] 
 then
-    if [ ! -e certs/confluentCA.pem ] && [ ! -e certs/confluentCA.key ]
-    then
-        echo Creating CA certificate and key
-        ./create-ca.sh
-    fi
-
-    echo "Creating secret for CA cert and key"
-    oc create secret tls ca-pair-sslcerts \
-        --cert=certs/confluentCA.pem \
-        --key=certs/confluentCA.key
+    ./create-certs.sh $namespace $domain
 fi
 
 # Create a PKCS12 key store for the CA
+echo Creating keystore
 keytool -keystore confluent-$namespace.p12 -storetype PKCS12 -import -file ./certs/confluentCA.pem -storepass password -noprompt
 
 # Run the create-secrets script
+echo Creating auth secrets
 ./create-secrets.sh $namespace $kafkaUser $kafkaPass $c3User $c3Pass
 
 # Edit the namespaces and route prefixes in the configuration yaml.  
@@ -64,7 +59,7 @@ keytool -keystore confluent-$namespace.p12 -storetype PKCS12 -import -file ./cer
 # Organise temp dir and files
 if [ -d operatorTemp ]
 then
-    rmdir operatorTemp
+    rm -rf operatorTemp
 fi
 
 mkdir operatorTemp
@@ -76,13 +71,15 @@ then
 fi
 
 # Split up the config file
+
+echo Scanning input configuration file
 index=0
 fileContent=$(i=$index yq eval 'select(di == env(i))' ../$filename)
 
 while [ ! -z "${fileContent// }" ]
 do
     type=$(i=$index yq eval 'select(di == env(i)) | .kind' ../$filename)
-    echo Making file $type.yaml
+    echo $type added to configuration
     echo "$fileContent" > $type.yaml
 
     ((index=index+1))
@@ -90,17 +87,39 @@ do
 
 done
 
+echo Configuring routes for external access
 # Change the route prefix for the Kafka brokers
-yq eval -i ".spec.listeners.externalAccess.route.brokerPrefix = \"kafka-$namespace-\"" Kafka.yaml
-yq eval -i ".spec.listeners.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" Kafka.yaml
+yq eval -i ".spec.listeners.external.externalAccess.route.brokerPrefix = \"kafka-$namespace-\"" Kafka.yaml
+yq eval -i ".spec.listeners.external.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" Kafka.yaml
 
-# Change the route prefix for the other components
+# Change the kafka endpoint for the components and whilst we're there, update the 
+# domain for the external access if present. See security note in the README
+
 for component in ControlCenter SchemaRegistry Connect KSQLDB
 do
     file="$component".yaml
     lowercaseComponent=$(echo $component | tr '[:upper:]' '[:lower:]')
     yq eval -i ".spec.dependencies.kafka.bootstrapEndpoint = \"kafka.$namespace.svc.cluster.local:9071\"" $file
+
+    # Only modify the route if it's present
+    if  [[ $(yq eval ".spec.externalAccess" $file) != "null" ]]
+    then
+        yq eval -i ".spec.externalAccess.route.domain = \"$domain\"" $file
+    fi
 done
+
+# Set up the tls config with the certificates generated earlier
+for component in ControlCenter SchemaRegistry Connect KSQLDB Zookeeper Kafka
+do
+    file="$component".yaml
+    lowercaseComponent=$(echo $component | tr '[:upper:]' '[:lower:]')
+
+    # Configure the tls secret for each component
+    yq eval -i "del(.spec.tls)" $file
+    yq eval -i ".spec.tls.secretRef = \"$lowercaseComponent-tls\"" $file
+done
+
+echo Configuring Control Center to point to the right endpoints for the components
 
 # Cofigure component endpoints in Control Center
 if [ -e ControlCenter.yaml ]
@@ -121,17 +140,18 @@ then
     fi
 fi
 
+echo Adding basic auth to Schema Registry
 # Add basic auth to the schema registry and the dependency in C3, but not the others as it's not yet supported
 yq eval -i ".spec.authentication.type = \"basic\"" SchemaRegistry.yaml
 yq eval -i ".spec.authentication.basic.secretRef = \"sr-listener\"" SchemaRegistry.yaml
 yq eval -i ".spec.dependencies.schemaRegistry.authentication.type = \"basic\"" ControlCenter.yaml
 yq eval -i ".spec.dependencies.schemaRegistry.authentication.basic.secretRef = \"c3-sr\"" ControlCenter.yaml
 
+echo Creating final YAML file
 # Replace the namespace element in each file and then cat them to the temp file
 index=0
 for file in *.yaml
 do
-    echo File = $file
     yq eval -i ".metadata.namespace = \"$namespace\"" $file
 
     if [ ! $index -eq 0 ]
@@ -150,6 +170,8 @@ cd ..
 # Tidy up
 rm -rf operatorTemp
 
+echo Applying the YAML file to the cluster
 oc apply -f ./$filename
 
-echo Trust store created: confluent-$namespace.p12, password is password
+echo Trust store is: confluent-$namespace.p12, password is password
+echo The deployed YAML is $filename

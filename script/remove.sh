@@ -26,8 +26,15 @@ secrets="zookeeper-listener \
     c3-connect \
     c3-ksql \
     c3-sr \
-    metric-credentials\
-    ca-pair-sslcerts"
+    metric-credentials \
+    ca-pair-sslcerts \
+    kafka-tls \
+    connect-tls \
+    replicator-tls \
+    schemaregistry-tls \
+    ksql-tls \
+    controlcenter-tls \
+    zookeeper-tls"
 
 for secret in $secrets
 do
