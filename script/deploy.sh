@@ -88,14 +88,16 @@ do
 done
 
 echo Configuring routes for external access
+
 # Change the route prefix for the Kafka brokers
 yq eval -i ".spec.listeners.external.externalAccess.route.brokerPrefix = \"kafka-$namespace-\"" Kafka.yaml
 yq eval -i ".spec.listeners.external.externalAccess.route.bootstrapPrefix = \"kafka-$namespace\"" Kafka.yaml
+yq eval -i ".spec.listeners.external.externalAccess.route.domain = \"$domain\"" Kafka.yaml
 
 # Change the kafka endpoint for the components and whilst we're there, update the 
 # domain for the external access if present. See security note in the README
 
-for component in ControlCenter SchemaRegistry Connect KSQLDB
+for component in ControlCenter SchemaRegistry Connect KSQLDB Kafka
 do
     file="$component".yaml
     lowercaseComponent=$(echo $component | tr '[:upper:]' '[:lower:]')
