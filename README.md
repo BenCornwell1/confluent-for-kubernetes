@@ -33,6 +33,8 @@ Remove the cluster before attempting to delete the namespace, otherwise it will 
 
 The Kafka username and password are used for everything except admin access to the Control Center GUI
 
+Once the installation is complete, open the Openshift console, navigate to the 'Networking' section on the left and select 'Routes' in the namespace you specified.  Then click on the address of the 'control center bootstrap' route, and log in with the credentials you specified in the command.  If using Chrome you may have to type 'thisisunsafe' into the page that tells you you cannot visit the site - it will let you in.
+
 __IMPORTANT__
 
 Don't forget to log on to the Control Center after installation and change the retention period of `_confluent-metrics` )(it's a hidden internal topic) from 3 days to 3 hours otherwise the brokers will likely run out of disk space.
