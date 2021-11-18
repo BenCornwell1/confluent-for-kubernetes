@@ -41,7 +41,7 @@ Don't forget to log on to the Control Center after installation and change the r
 
 __ALSO IMPORTANT__
 
-Control Center cannot talk to Connect, or KSQLDB if they are secured with basic auth.  Therefore in this installation they are deployed without auth.  If there is going to be anything remotely important on your cluster you will need to do something else to protect it - either use MTLS (not implemented in this script), create network policies or something else.  It can however use basic auth for Schema Registry, so this is configured.
+With current version (6.2) Control Center cannot talk to Connect, or KSQLDB if they are secured with basic auth.  Therefore in this installation they are deployed without auth.  If there is going to be anything remotely important on your cluster you will need to do something else to protect it - either use MTLS (not implemented in this script), create network policies or something else.  It can however use basic auth for Schema Registry, so this is configured.
 
 ## What gets deployed
 
